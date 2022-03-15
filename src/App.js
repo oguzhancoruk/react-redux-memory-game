@@ -2,35 +2,27 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import SingleCard from './components/SingleCard';
-
-const cardImage=[
-  {"src":"/img/helmet-1.png",matched:false  },
-  {"src":"/img/potion-1.png",matched:false},
-  {"src":"/img/ring-1.png",matched:false},
-  {"src":"/img/scroll-1.png",matched:false},
-  {"src":"/img/shield-1.png",matched:false},
-  {"src":"/img/sword-1.png",matched:false}
-]
-
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { getImage } from './redux/GameSlice';
 
 
 function App() {
-
+const dispatch=useDispatch();
+const item=useSelector(state=>state.game.newImage)
 const [cards,setCards]=useState([]);
-const [turns,setTurns]=useState(0);
+const [point,setPoints]=useState(0);
 const [choiceOne,setChoiceOne]=useState(null)
 const [choiceTwo,setChoiceTwo]=useState(null)
 const [disabled,setDisabled]=useState(false)
   // shuffle cards 
 
 const shuffleCards=()=>{
-  const shuffledCards=[...cardImage,...cardImage]
-  .sort(()=>Math.random()-0.5)
-  .map((res)=>({...res,id:Math.random()}))
+  dispatch(getImage())
   setChoiceOne(null)
   setChoiceTwo(null)
-  setCards(shuffledCards)
-  setTurns(0)
+  setCards(item)
+  setPoints(0)
 }
 //handle a choice
 const handleChoice=(card)=>{
@@ -44,10 +36,11 @@ useEffect(()=>{
 if(choiceOne&&choiceTwo){
   setDisabled(true)
   if(choiceOne.src===choiceTwo.src){
+    setPoints(prevPoints=>prevPoints+50)
    setCards(prevCards=>{
      return prevCards.map(res=>{
        if(res.src===choiceOne.src){
-         return {...res,matched:true}
+         return {...res,matched:true} 
        }
        else{
          return res
@@ -59,32 +52,41 @@ if(choiceOne&&choiceTwo){
   else {
    
    setTimeout(()=>resetTurn(),750) 
+   setPoints(prevPoints=>prevPoints-20)
   }
 }
 
 },[choiceOne,choiceTwo])
-console.log(cards)
+
 //reset choice increase turn
 
 const resetTurn=()=>{
   setChoiceOne(null)
   setChoiceTwo(null)
-  setTurns(prevTurns=>prevTurns+1)
+  
   setDisabled(false)
 }
 
 
 useEffect(()=>{
   shuffleCards()
-},[])
-  return (
-    <div className="App">
-    <h1>Magic Match</h1>
-    <button onClick={shuffleCards}>New Game</button>
+},[]
+)
 
+
+
+  return (
+
+
+    <div className="App">
+    <h1>Memory Game</h1>
+    <button onClick={shuffleCards}>New Game</button>
+    <h3>Point:{point}</h3>
     <div className="card-grid">
       {
+         
         cards.map(card=>(
+          
           <SingleCard  
           key={card.id} 
           card={card}
@@ -96,8 +98,12 @@ useEffect(()=>{
         ))
       }
       </div>
-      <h3>Turns:{turns}</h3>
+    
+     
+   
     </div>
+
+   
   );
 }
 
